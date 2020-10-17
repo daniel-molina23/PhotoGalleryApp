@@ -7,6 +7,7 @@ import androidx.annotation.WorkerThread
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.bignerdranch.android.photogallery.GalleryItem
+import okhttp3.OkHttpClient
 import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
@@ -22,9 +23,15 @@ class FlickrFetchr{
     private lateinit var flickrApi : FlickrApi
 
     init {
+        //adding interceptor to OkHttpClient instance
+        val client = OkHttpClient.Builder()
+            .addInterceptor(PhotoInterceptor())
+            .build()
+
         val retrofit: Retrofit = Retrofit.Builder()
             .baseUrl("https://api.flickr.com/")
             .addConverterFactory(GsonConverterFactory.create())
+            .client(client)
             .build()
 
         //use retrofit object to create an instance of the API interface
@@ -32,9 +39,17 @@ class FlickrFetchr{
     }
 
     fun fetchPhotos(): LiveData<List<GalleryItem>> {
-        val responseLiveData: MutableLiveData<List<GalleryItem>> = MutableLiveData()
+        return fetchPhotoMetadata(flickrApi.fetchPhotos())
+    }
 
-        val flickrRequest: Call<FlickrResponse> = flickrApi.fetchPhotos()
+    fun searchPhotos(query: String): LiveData<List<GalleryItem>> {
+        return fetchPhotoMetadata(flickrApi.searchPhotos(query))
+    }
+
+    private fun fetchPhotoMetadata(flickrRequest: Call<FlickrResponse>)
+            : LiveData<List<GalleryItem>> {
+
+        val responseLiveData: MutableLiveData<List<GalleryItem>> = MutableLiveData()
 
         flickrRequest.enqueue(object: Callback<FlickrResponse> {
 

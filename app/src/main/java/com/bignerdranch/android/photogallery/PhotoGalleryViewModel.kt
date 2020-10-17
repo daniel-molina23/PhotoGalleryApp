@@ -8,6 +8,8 @@ class PhotoGalleryViewModel : ViewModel(){
     val galleryItemLiveData: LiveData<List<GalleryItem>>
 
     init{
-        galleryItemLiveData = FlickrFetchr().fetchPhotos()
+        //hardcoded temporarily for testing...
+        galleryItemLiveData =
+            FlickrFetchr().searchPhotos("bicycle")
     }
 }
