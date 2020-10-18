@@ -18,6 +18,10 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.work.Constraints
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequest
+import androidx.work.WorkManager
 import api.FlickrApi
 import api.FlickrFetchr
 import retrofit2.Call
@@ -52,6 +56,19 @@ class PhotoGalleryFragment : Fragment() {
                 photoHolder.bindDrawable(drawable)
             }
         lifecycle.addObserver(thumbnailDownloader.fragmentLifecycleObserver)
+
+        //set unmetered Network constraint aka WIFI
+        // (Cellular Network is metered so it wont work)
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.UNMETERED)
+            .build()
+        //make a one time work request with PollWorker and constraint
+        val workRequest = OneTimeWorkRequest
+            .Builder(PollWorker::class.java)
+            .setConstraints(constraints)
+            .build()
+        WorkManager.getInstance()
+            .enqueue(workRequest)
     }
 
     override fun onCreateView(
